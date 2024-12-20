@@ -8,10 +8,14 @@ double slit with hard-walls (infinite potential barrier; the wave function
 cancels inside the walls).
 """
 
+from matplotlib import animation
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 from matplotlib.patches import Rectangle
+
+import matplotlib as mpl
+mpl.rcParams['animation.ffmpeg_path'] = "C:\\Users\\TypeyTypey\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\\ffmpeg-7.1-full_build\\bin\\ffmpeg.exe"
 
 def psi0(x, y, x0, y0, sigma=0.5, k=15*np.pi):
     
@@ -75,12 +79,12 @@ def doubleSlit_interaction(psi, j0, j1, i0, i1, i2, i3):
 # Parameters
 # =============================================================================
 
-L = 8 # Well of width L. Shafts from 0 to +L.
-Dy = 0.05 # Spatial step size.
+L = 5 # Well of width L. Shafts from 0 to +L.
+Dy = 0.04 # Spatial step size.
 Dt = Dy**2/4 # Temporal step size.
 Nx = int(L/Dy) + 1 # Number of points on the x axis.
 Ny = int(L/Dy) + 1 # Number of points on the y axis.
-Nt = 500 # Number of time steps.
+Nt = 250 # Number of time steps.
 rx = -Dt/(2j*Dy**2) # Constant to simplify expressions.
 ry = -Dt/(2j*Dy**2) # Constant to simplify expressions.
 
@@ -166,14 +170,21 @@ psi = doubleSlit_interaction(psi, j0, j1, i0, i1, i2, i3) # Initial interaction 
 psis.append(np.copy(psi)) # We store the wave function of this time step.
 
 # We solve the matrix system at each time step in order to obtain the wave function.
-for i in range(1,Nt):
+import time
+from tqdm import tqdm
+tstart = time.time()
+for i in tqdm(range(1,Nt)):
+    # print(f'time step:{i}/{Nt}')
+    t0=time.time()
     psi_vect = psi.reshape((Ni)) # We adjust the shape of the array to generate the matrix b of independent terms.
     b = np.matmul(M,psi_vect) # We calculate the array of independent terms.
     psi_vect = spsolve(Asp,b) # Resolvemos el sistema para este paso temporal.
     psi = psi_vect.reshape((Nx-2,Ny-2)) # Recuperamos la forma del array de la función de onda.
     psi = doubleSlit_interaction(psi, j0, j1, i0, i1, i2, i3) # We retrieve the shape of the wave function array.
     psis.append(np.copy(psi)) # Save the result.
+    # print(f'compute time: {t0-time.time()}')
 
+print(f'total comp time: {time.time()-tstart}')
 # We calculate the modulus of the wave function at each time step.
 mod_psis = [] # For storing the modulus of the wave function at each time step.
 for wavefunc in psis:
@@ -183,9 +194,9 @@ for wavefunc in psis:
     mod_psis.append(mod) # We save the calculated modulus.
     
 ## In case there is a need to save memory.
-# del psis
-# del M
-# del psi_vect
+del psis
+del M
+del psi_vect
 
 #%%
 # =============================================================================
@@ -222,10 +233,12 @@ def animate(i):
     return img, # We return the result ready to use with blit=True.
 
 
-anim = FuncAnimation(fig, animate, interval=1, frames=np.arange(0,Nt,2), repeat=False, blit=0) # We generate the animation.
+anim = FuncAnimation(fig, animate, interval=1, frames=np.arange(0,Nt,2), repeat=True, blit=0) # We generate the animation.
 
 cbar = fig.colorbar(img)
 plt.show() # We show the animation finally.
 
 ## Save the animation (Ubuntu).
-# anim.save('./animationsName.mp4', writer="ffmpeg", fps=60)
+# writergif = animation.PillowWriter(fps=120) 
+# writergif.bitrate
+anim.save('./HarveyLook.gif', writer="ffmpeg", fps = 60)

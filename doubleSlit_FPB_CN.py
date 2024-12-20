@@ -32,12 +32,12 @@ def psi0(x, y, x0, y0, sigma=0.5, k=15*np.pi):
 # Parameters
 # =============================================================================
 
-L = 8 # Well of width L. Shafts from 0 to +L.
-Dy = 0.05 # Spatial step size.
+L = 4 # Well of width L. Shafts from 0 to +L.
+Dy = 0.04 # Spatial step size.
 Dt = Dy**2/4 # Temporal step size.
 Nx = int(L/Dy) + 1 # Number of points on the x axis.
 Ny = int(L/Dy) + 1 # Number of points on the y axis.
-Nt = 500 # Number of time steps.
+Nt = 100 # Number of time steps.
 rx = -Dt/(2j*Dy**2) # Constant to simplify expressions.
 ry = -Dt/(2j*Dy**2) # Constant to simplify expressions.
 
@@ -125,6 +125,8 @@ psi[0,:] = psi[-1,:] = psi[:,0] = psi[:,-1] = 0 # The wave function equals 0 at 
 psis.append(np.copy(psi)) # We store the wave function of this time step.
 
 # We solve the matrix system at each time step in order to obtain the wave function.
+import time
+tstart = time.time()
 for i in range(1,Nt):
     psi_vect = psi.reshape((Ni)) # We adjust the shape of the array to generate the matrix b of independent terms.
     b = np.matmul(M,psi_vect) # We calculate the array of independent terms.
@@ -132,6 +134,7 @@ for i in range(1,Nt):
     psi = psi_vect.reshape((Nx-2,Ny-2)) # Recuperamos la forma del array de la función de onda.
     psis.append(np.copy(psi)) # Save the result.
 
+print(f'total comp time: {time.time()-tstart}')
 # We calculate the modulus of the wave function at each time step.
 mod_psis = [] # For storing the modulus of the wave function at each time step.
 for wavefunc in psis:
